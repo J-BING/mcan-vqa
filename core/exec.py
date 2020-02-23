@@ -148,8 +148,7 @@ class Execution:
             for step, (
                     img_feat_iter,
                     ques_ix_iter,
-                    ans_iter,
-                    ques_content_iter
+                    ans_iter
             ) in enumerate(dataloader):
 
                 optim.zero_grad()
@@ -157,7 +156,6 @@ class Execution:
                 img_feat_iter = img_feat_iter.cuda()
                 ques_ix_iter = ques_ix_iter.cuda()
                 ans_iter = ans_iter.cuda()
-                ques_content_iter = ques_content_iter.cuda()
 
                 for accu_step in range(self.__C.GRAD_ACCU_STEPS):
 
@@ -170,13 +168,11 @@ class Execution:
                     sub_ans_iter = \
                         ans_iter[accu_step * self.__C.SUB_BATCH_SIZE:
                                  (accu_step + 1) * self.__C.SUB_BATCH_SIZE]
-                    sub_ques_content_iter = ques_content_iter[accu_step * self.__C.SUB_BATCH_SIZE:(accu_step + 1) * self.__C.SUB_BATCH_SIZE]
 
 
                     pred = net(
                         sub_img_feat_iter,
-                        sub_ques_ix_iter,
-                        sub_ques_content_iter
+                        sub_ques_ix_iter
                     )
 
                     loss = loss_fn(pred, sub_ans_iter)
@@ -339,8 +335,7 @@ class Execution:
         for step, (
                 img_feat_iter,
                 ques_ix_iter,
-                ans_iter,
-                ques_content_iter
+                ans_iter
         ) in enumerate(dataloader):
             print("\rEvaluation: [step %4d/%4d]" % (
                 step,
@@ -349,12 +344,10 @@ class Execution:
 
             img_feat_iter = img_feat_iter.cuda()
             ques_ix_iter = ques_ix_iter.cuda()
-            ques_content_iter = ques_content_iter.cuda()
 
             pred = net(
                 img_feat_iter,
-                ques_ix_iter,
-                ques_content_iter
+                ques_ix_iter
             )
             pred_np = pred.cpu().data.numpy()
             pred_argmax = np.argmax(pred_np, axis=1)

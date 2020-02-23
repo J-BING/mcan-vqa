@@ -74,13 +74,7 @@ class Cfgs(PATH):
 
         # Set True to use pretrained word embedding
         # (GloVe: spaCy https://spacy.io/)
-        self.USE_GLOVE = False
-
-        # Set True to use ELMo word embedding
-        self.USE_ELMO = True
-
-        #Set elmo word embedding size
-        self.ELMO_FEAT_SIZE = 1024
+        self.USE_GLOVE = True
 
         # Word embedding matrix size
         # (token size x WORD_EMBED_SIZE)

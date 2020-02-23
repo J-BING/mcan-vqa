@@ -6,7 +6,6 @@
 
 from core.model.net_utils import FC, MLP, LayerNorm
 from core.model.mca import MCA_ED
-from allennlp.modules.elmo import Elmo, batch_to_ids
 
 import torch.nn as nn
 import torch.nn.functional as F
@@ -79,20 +78,6 @@ class Net(nn.Module):
             batch_first=True
         )
 
-        # load Elmo model
-        if __C.ELMO_FEAT_SIZE == 1024:
-            options_file = __C.ELMO_CONF_PATH + "elmo_2x4096_512_2048cnn_2xhighway_options.json"
-            weight_file = __C.ELMO_CONF_PATH + "elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5"
-        elif __C.ELMO_FEAT_SIZE == 512:
-            options_file = __C.ELMO_CONF_PATH + "elmo_2x2048_256_2048cnn_1xhighway_options.json"
-            weight_file = __C.ELMO_CONF_PATH + "elmo_2x2048_256_2048cnn_1xhighway_weights.hdf5"
-        self.elmo = Elmo(options_file, weight_file, 1, dropout=0)
-
-        self.qus_feat_linear = nn.Linear(
-            __C.ELMO_FEAT_SIZE,
-            __C.HIDDEN_SIZE
-        )
-
         self.img_feat_linear = nn.Linear(
             __C.IMG_FEAT_SIZE,
             __C.HIDDEN_SIZE
@@ -107,22 +92,15 @@ class Net(nn.Module):
         self.proj = nn.Linear(__C.FLAT_OUT_SIZE, answer_size)
 
 
-    def forward(self, img_feat, ques_ix, ques_content):
+    def forward(self, img_feat, ques_ix):
 
         # Make mask
         lang_feat_mask = self.make_mask(ques_ix.unsqueeze(2))
         img_feat_mask = self.make_mask(img_feat)
 
         # Pre-process Language Feature
-        if __C.USE_GLOVE:
-            glove_lang_feat = self.embedding(ques_ix)
-            lang_feat, _ = self.lstm(glove_lang_feat)
-        elif __C.USE_ELMO:
-            # elmo word embedding
-            character_ids = batch_to_ids([ques_content])
-            elmo_embedding = self.elmo(character_ids)['elmo_representations'][0]
-            # lang_feat = torch.cat((glove_lang_feat, elmo_embedding[0]), dim=1)
-            lang_feat = self.qus_feat_linear(elmo_embedding[0])            
+        lang_feat = self.embedding(ques_ix)
+        lang_feat, _ = self.lstm(lang_feat)
 
         # Pre-process Image Feature
         img_feat = self.img_feat_linear(img_feat)
