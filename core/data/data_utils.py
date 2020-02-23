@@ -128,7 +128,7 @@ def proc_img_feat(img_feat, img_feat_pad_size):
 
     return img_feat
 
-
+# return one question index: 1 dim
 def proc_ques(ques, token_to_ix, max_token):
     ques_ix = np.zeros(max_token, np.int64)
 
@@ -146,8 +146,14 @@ def proc_ques(ques, token_to_ix, max_token):
 
         if ix + 1 == max_token:
             break
-
-    return ques_ix
+    if len(words) >= max_token:
+        ques_content = words[:max_token]
+    else:
+        r = max_token - len(words)
+        apend = ['PAD']*r
+        ques_content = words + apend
+    
+    return ques_ix, ques_content
 
 
 def get_score(occur):
