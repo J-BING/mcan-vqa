@@ -130,7 +130,7 @@ class DataSet(Data.Dataset):
             img_feat_iter = proc_img_feat(img_feat_x, self.__C.IMG_FEAT_PAD_SIZE)
 
             # Process question
-            ques_ix_iter = proc_ques(ques, self.token_to_ix, self.__C.MAX_TOKEN)
+            ques_ix_iter, ques_content_iter = proc_ques(ques, self.token_to_ix, self.__C.MAX_TOKEN)
 
             # Process answer
             ans_iter = proc_ans(ans, self.ans_to_ix)
@@ -151,12 +151,12 @@ class DataSet(Data.Dataset):
             img_feat_iter = proc_img_feat(img_feat_x, self.__C.IMG_FEAT_PAD_SIZE)
 
             # Process question
-            ques_ix_iter = proc_ques(ques, self.token_to_ix, self.__C.MAX_TOKEN)
+            ques_ix_iter, ques_content_iter = proc_ques(ques, self.token_to_ix, self.__C.MAX_TOKEN)
 
 
         return torch.from_numpy(img_feat_iter), \
                torch.from_numpy(ques_ix_iter), \
-               torch.from_numpy(ans_iter)
+               torch.from_numpy(ans_iter), ques_content_iter
 
 
     def __len__(self):

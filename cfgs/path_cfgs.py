@@ -44,6 +44,7 @@ class PATH:
         self.CACHE_PATH = './results/cache/'
         self.LOG_PATH = './results/log/'
         self.CKPTS_PATH = './ckpts/'
+        self.ELMO_CONF_PATH = './utils/elmo/'
 
         if 'result_test' not in os.listdir('./results'):
             os.mkdir('./results/result_test')
