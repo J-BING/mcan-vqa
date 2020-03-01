@@ -60,7 +60,7 @@ class AttFlat(nn.Module):
 # -------------------------
 
 class Net(nn.Module):
-    def __init__(self, __C, pretrained_emb, token_size, answer_size):
+    def __init__(self, __C, pretrained_emb, token_size, answer_size, ix_to_token):
         super(Net, self).__init__()
 
         self.embedding = nn.Embedding(
@@ -68,8 +68,10 @@ class Net(nn.Module):
             embedding_dim=__C.WORD_EMBED_SIZE
         )
 
+        self.USE_GLOVE = __C.USE_GLOVE
+        self.USE_ELMO = __C.USE_ELMO
         # Loading the GloVe embedding weights
-        if __C.USE_GLOVE:
+        if self.USE_GLOVE:
             self.embedding.weight.data.copy_(torch.from_numpy(pretrained_emb))
 
         self.lstm = nn.LSTM(
@@ -106,26 +108,36 @@ class Net(nn.Module):
         self.proj_norm = LayerNorm(__C.FLAT_OUT_SIZE)
         self.proj = nn.Linear(__C.FLAT_OUT_SIZE, answer_size)
 
+        self.ix_to_token = ix_to_token
 
-    def forward(self, img_feat, ques_ix, ques_content):
+
+    def forward(self, img_feat, ques_ix):
 
         # Make mask
         lang_feat_mask = self.make_mask(ques_ix.unsqueeze(2))
         img_feat_mask = self.make_mask(img_feat)
 
         # Pre-process Language Feature
-        if __C.USE_GLOVE:
+        if self.USE_GLOVE:
             glove_lang_feat = self.embedding(ques_ix)
             lang_feat, _ = self.lstm(glove_lang_feat)
-        elif __C.USE_ELMO:
+        elif self.USE_ELMO:
             # elmo word embedding
-            character_ids = batch_to_ids([ques_content])
-            elmo_embedding = self.elmo(character_ids)['elmo_representations'][0]
+            ques_content_iter = []
+            for single_ques_ix in ques_ix:
+                content = []
+                for ix in single_ques_ix.numpy():
+                    content.append(self.ix_to_token[ix])
+                ques_content_iter.append(content)
+            character_ids = batch_to_ids(ques_content_iter)
+            elmo_embedding_list = self.elmo(character_ids)['elmo_representations'][0]
+            elmo_embedding = torch.stack(elmo_embedding_list, 0)
             # lang_feat = torch.cat((glove_lang_feat, elmo_embedding[0]), dim=1)
-            lang_feat = self.qus_feat_linear(elmo_embedding[0])            
+            lang_feat = self.qus_feat_linear(elmo_embedding)            
 
         # Pre-process Image Feature
         img_feat = self.img_feat_linear(img_feat)
+        print('初始图像特征：{}，初始语言特征：{}'.format(img_feat.size(), lang_feat.size()))
 
         # Backbone Framework
         lang_feat, img_feat = self.backbone(
@@ -144,7 +156,7 @@ class Net(nn.Module):
             img_feat,
             img_feat_mask
         )
-
+        print('图像特征：{}，语言特征：{}'.format(img_feat.size(), lang_feat.size()))
         proj_feat = lang_feat + img_feat
         proj_feat = self.proj_norm(proj_feat)
         proj_feat = torch.sigmoid(self.proj(proj_feat))

@@ -88,6 +88,8 @@ class DataSet(Data.Dataset):
 
         # Tokenize
         self.token_to_ix, self.pretrained_emb = tokenize(self.stat_ques_list, __C.USE_GLOVE)
+        #ix_to_token
+        self.ix_to_token = {v: k for k, v in self.token_to_ix.items()}
         self.token_size = self.token_to_ix.__len__()
         print('== Question token vocab size:', self.token_size)
 
@@ -130,7 +132,7 @@ class DataSet(Data.Dataset):
             img_feat_iter = proc_img_feat(img_feat_x, self.__C.IMG_FEAT_PAD_SIZE)
 
             # Process question
-            ques_ix_iter, ques_content_iter = proc_ques(ques, self.token_to_ix, self.__C.MAX_TOKEN)
+            ques_ix_iter = proc_ques(ques, self.token_to_ix, self.__C.MAX_TOKEN)
 
             # Process answer
             ans_iter = proc_ans(ans, self.ans_to_ix)
@@ -151,12 +153,12 @@ class DataSet(Data.Dataset):
             img_feat_iter = proc_img_feat(img_feat_x, self.__C.IMG_FEAT_PAD_SIZE)
 
             # Process question
-            ques_ix_iter, ques_content_iter = proc_ques(ques, self.token_to_ix, self.__C.MAX_TOKEN)
+            ques_ix_iter = proc_ques(ques, self.token_to_ix, self.__C.MAX_TOKEN)
 
 
         return torch.from_numpy(img_feat_iter), \
                torch.from_numpy(ques_ix_iter), \
-               torch.from_numpy(ans_iter), ques_content_iter
+               torch.from_numpy(ans_iter)
 
 
     def __len__(self):

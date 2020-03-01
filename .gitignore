@@ -23,3 +23,7 @@ utils/elmo/elmo_2x2048_256_2048cnn_1xhighway_weights.hdf5
 utils/elmo/elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5
 datasets/vqa/VG_annotations.json
 datasets/vqa/VG_questions.json
+*.pyc
+*.jpg.npz
+*.DS_Store
+results/log/*.txt
