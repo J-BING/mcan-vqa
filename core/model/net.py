@@ -130,14 +130,14 @@ class Net(nn.Module):
                     content.append(self.ix_to_token[ix])
                 ques_content_iter.append(content)
             character_ids = batch_to_ids(ques_content_iter)
-            elmo_embedding_list = self.elmo(character_ids)['elmo_representations'][0]
-            elmo_embedding = torch.stack(elmo_embedding_list, 0)
+            elmo_embedding = self.elmo(character_ids)['elmo_representations'][0]
+            # elmo_embedding = torch.stack(elmo_embedding_list, 0)
             # lang_feat = torch.cat((glove_lang_feat, elmo_embedding[0]), dim=1)
-            lang_feat = self.qus_feat_linear(elmo_embedding)            
+            lang_feat = self.qus_feat_linear(elmo_embedding)
 
         # Pre-process Image Feature
         img_feat = self.img_feat_linear(img_feat)
-        print('初始图像特征：{}，初始语言特征：{}'.format(img_feat.size(), lang_feat.size()))
+        # print('初始图像特征：{}，初始语言特征：{}'.format(img_feat.size(), lang_feat.size()))
 
         # Backbone Framework
         lang_feat, img_feat = self.backbone(
@@ -156,7 +156,7 @@ class Net(nn.Module):
             img_feat,
             img_feat_mask
         )
-        print('图像特征：{}，语言特征：{}'.format(img_feat.size(), lang_feat.size()))
+        # print('图像特征：{}，语言特征：{}'.format(img_feat.size(), lang_feat.size()))
         proj_feat = lang_feat + img_feat
         proj_feat = self.proj_norm(proj_feat)
         proj_feat = torch.sigmoid(self.proj(proj_feat))

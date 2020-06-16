@@ -311,6 +311,7 @@ class Execution:
         token_size = dataset.token_size
         ans_size = dataset.ans_size
         pretrained_emb = dataset.pretrained_emb
+        ix_to_token = dataset.ix_to_token
 
         net = Net(
             self.__C,
